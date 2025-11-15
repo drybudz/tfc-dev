@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Farm Carpinteria - Coming Soon</title>
+    <link rel="icon" type="image/png" href="assets/favicon.png">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <img src="assets/TheFarmLogo.png" alt="The Farm Carpinteria Logo">
+        </div>
+
+        <div class="email-container">
+            <input 
+                type="email" 
+                id="email-input" 
+                class="email-input" 
+                placeholder="Email to subscribe" 
+                autocomplete="email"
+            >
+            <div id="error-message" class="error-message">Please enter a valid email address</div>
+            <button id="signup-btn" class="signup-btn">Sign Up</button>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="modal-overlay" class="modal-overlay">
+        <div class="modal-content">
+            <h2>You're subscribed.</h2>
+            <p>Launch details coming soon!</p>
+            <button id="modal-btn" class="modal-btn">OK</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+
