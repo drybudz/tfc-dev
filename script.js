@@ -14,7 +14,6 @@ function handleEmailInput() {
     const isValid = validateEmail(email);
 
     // Clear previous errors
-    emailInput.classList.remove('error');
     errorMessage.classList.remove('show');
 
     if (isValid) {
@@ -25,7 +24,6 @@ function handleEmailInput() {
 }
 
 function showError() {
-    emailInput.classList.add('error');
     errorMessage.classList.add('show');
 }
 
@@ -39,7 +37,6 @@ function resetAnimations() {
 
     // Reset form
     emailInput.value = '';
-    emailInput.classList.remove('error');
     errorMessage.classList.remove('show');
     signupBtn.classList.remove('show');
 }
