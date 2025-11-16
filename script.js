@@ -36,6 +36,14 @@ function resetAnimations() {
         logo.style.animation = 'fadeInFloat 2s ease-out forwards';
     }, 10);
 
+    // Reset email container animation
+    const emailContainer = document.querySelector('.email-container');
+    emailContainer.style.animation = 'none';
+    emailContainer.style.opacity = '0';
+    setTimeout(() => {
+        emailContainer.style.animation = 'fadeUp 0.8s ease-out 0.5s forwards';
+    }, 10);
+
     // Reset form
     emailInput.value = '';
     errorMessage.classList.remove('show');
