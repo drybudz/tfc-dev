@@ -95,22 +95,33 @@ async function handleSignup() {
             modalOverlay.classList.add('show');
         } else {
             // Handle different error types
-            if (response.status === 429) {
-                // Do not log errors to console for rate limit; UI already shows message
-                // Optionally, use a soft warning:
-                // console.warn('Rate limit hit');
-            } else if (data.error === 'duplicate') {
-                showError('This email is already registered');
-            } else if (data.message) {
-                showError(data.message);
-            } else if (data.error) {
-                // Non-rate-limit API error
-                showError(data.error);
-                console.warn('Submit failed', data);
-            } else {
-                showError('Something went wrong. Please try again.');
-                console.warn('Submit failed with status', response.status);
+            // Rate limit (production 429) OR soft rate limit (200 with rateLimited flag)
+            if (
+                response.status === 429 ||
+                data.rateLimited === true ||
+                data.error === 'too_many_requests'
+            ) {
+                showError(data.message || 'Too many attempts. Please try again in a minute.');
+                // optional soft log
+                console.warn && console.warn('Rate limit hit');
+                return;
             }
+
+            // Duplicate email
+            if (data?.error === 'duplicate') {
+                showError('This email is already registered');
+                return;
+            }
+
+            // Generic API-provided message
+            if (data?.message) {
+                showError(data.message);
+                return;
+            }
+
+            // Other errors
+            showError('Something went wrong. Please try again.');
+            console.warn && console.warn('Submit failed with status', response.status, data);
         }
     } catch (error) {
         // Network or unexpected error; log softly to avoid alarming red console errors

@@ -144,11 +144,11 @@ export default async function handler(req, res) {
     // Per-IP limits
     const perMinIP = countRecent(r => (r[2] || '').trim() === ip, ONE_MIN);
     if (perMinIP >= MAX_PER_MIN_IP) {
-      return respondRateLimited(res, 'Too many attempts. Please try again in a minute.');
+      return respondRateLimited(res, 'Too many attempts.\nPlease try again in a minute.');
     }
     const perHourIP = countRecent(r => (r[2] || '').trim() === ip, ONE_HOUR);
     if (perHourIP >= MAX_PER_HOUR_IP) {
-      return respondRateLimited(res, 'Too many attempts. Please try again later.');
+      return respondRateLimited(res, 'Too many attempts.\nPlease try again later.');
     }
 
     // Per-email limits (optional but recommended)
@@ -157,14 +157,14 @@ export default async function handler(req, res) {
       ONE_MIN
     );
     if (perMinEmail >= MAX_PER_MIN_EMAIL) {
-      return respondRateLimited(res, 'Too many attempts. Please try again in a minute.');
+      return respondRateLimited(res, 'Too many attempts.\nPlease try again in a minute.');
     }
     const perHourEmail = countRecent(
       r => (r[0] || '').trim().toLowerCase() === emailLc,
       ONE_HOUR
     );
     if (perHourEmail >= MAX_PER_HOUR_EMAIL) {
-      return respondRateLimited(res, 'Too many attempts. Please try again later.');
+      return respondRateLimited(res, 'Too many attempts.\nPlease try again later.');
     }
 
     // Duplicate check (case-insensitive)
