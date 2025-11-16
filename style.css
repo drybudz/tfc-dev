@@ -117,10 +117,12 @@ body {
 .error-message {
     color: #FF6B6B;
     font-size: 14px;
-    margin-top: -10px;
+    display: block;
+    margin-top: 3px;
     opacity: 0;
     transition: opacity 0.3s ease;
     min-height: 20px;
+    z-index: 1;
 }
 
 .error-message.show {
