@@ -77,7 +77,7 @@ body {
     border-radius: 25px;
     font-size: 16px;
     font-family: Arial, sans-serif;
-    background-color: #E5D5BC;
+    background-color: #E5D5BC !important;
     color: #435FAB;
     transition: all 0.3s ease;
 }
@@ -90,7 +90,15 @@ body {
 .email-input:focus {
     outline: none;
     border: none;
-    background-color: #E5D5BC;
+    background-color: #E5D5BC !important;
+}
+
+.email-input:-webkit-autofill,
+.email-input:-webkit-autofill:hover,
+.email-input:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0px 1000px #E5D5BC inset !important;
+    -webkit-text-fill-color: #435FAB !important;
+    background-color: #E5D5BC !important;
 }
 
 .error-message {
@@ -136,6 +144,41 @@ body {
 
 .signup-btn:active {
     transform: scale(0.98);
+}
+
+.signup-btn:disabled {
+    opacity: 1;
+    cursor: not-allowed;
+    transform: none;
+    background-color: transparent;
+    color: #F5F1E8;
+}
+
+.signup-btn:disabled:hover {
+    transform: none;
+    background-color: transparent;
+    color: #F5F1E8;
+}
+
+/* Animated Dots */
+.signing-up::after {
+    content: '';
+    animation: dots 1.5s steps(4, end) infinite;
+}
+
+@keyframes dots {
+    0%, 20% {
+        content: '';
+    }
+    40% {
+        content: '.';
+    }
+    60% {
+        content: '..';
+    }
+    80%, 100% {
+        content: '...';
+    }
 }
 
 /* Success Modal */
@@ -240,3 +283,8 @@ body {
     }
 }
 
+.grecaptcha-badge {
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}

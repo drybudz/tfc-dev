@@ -1,0 +1,8 @@
+# Environment variables
+.env.local
+.env
+# Google Service Account credentials (if you download the JSON file)
+secret.json
+# Node modules (if using Next.js or serverless functions)
+node_modules/
+.vercel

@@ -23,7 +23,8 @@ function handleEmailInput() {
     }
 }
 
-function showError() {
+function showError(message = 'Please enter a valid email address') {
+    errorMessage.textContent = message;
     errorMessage.classList.add('show');
 }
 
@@ -41,38 +42,70 @@ function resetAnimations() {
     signupBtn.classList.remove('show');
 }
 
-function handleSignup() {
+async function handleSignup() {
     const email = emailInput.value.trim();
 
     // Validate email format
     if (!validateEmail(email)) {
-        showError();
+        showError('Please enter a valid email address');
         return;
     }
 
-    // TODO: Connect to Google Sheets API via Google Apps Script endpoint
-    // When ready, replace this with actual API call
-    // Example:
-    // fetch('YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL', {
-    //     method: 'POST',
-    //     headers: { 'Content-Type': 'application/json' },
-    //     body: JSON.stringify({ email: email })
-    // })
-    // .then(response => response.json())
-    // .then(data => {
-    //     if (data.success) {
-    //         modalOverlay.classList.add('show');
-    //     } else {
-    //         showError();
-    //     }
-    // })
-    // .catch(error => {
-    //     console.error('Error:', error);
-    //     showError();
-    // });
+    // Disable button during submission
+    signupBtn.disabled = true;
+    signupBtn.textContent = 'Signing up';
+    signupBtn.classList.add('signing-up');
 
-    // For now, just show success modal
-    modalOverlay.classList.add('show');
+    try {
+        // 1. Generate reCAPTCHA token
+        const recaptchaSiteKey = '6Lc__Q0sAAAAAFJHLTR7hi-XpfoktiiyPwTB6oPv';
+        const recaptchaToken = await new Promise((resolve, reject) => {
+            grecaptcha.ready(() => {
+                grecaptcha.execute(recaptchaSiteKey, { action: 'submit' })
+                    .then(resolve)
+                    .catch(reject);
+            });
+        });
+
+        // 2. Call Vercel API endpoint
+        const response = await fetch('/api/subscribe', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                email: email,
+                recaptchaToken: recaptchaToken
+            })
+        });
+
+        const data = await response.json();
+
+        // 3. Handle response
+        if (response.ok && data.success) {
+            // Success - show modal
+            modalOverlay.classList.add('show');
+        } else {
+            // Handle different error types
+            if (data.error === 'duplicate') {
+                showError('This email is already registered');
+            } else if (data.message) {
+                showError(data.message);
+            } else if (data.error) {
+                showError(data.error);
+            } else {
+                showError('Something went wrong. Please try again.');
+            }
+        }
+    } catch (error) {
+        console.error('Error submitting email:', error);
+        showError('Something went wrong. Please try again.');
+    } finally {
+        // Re-enable button
+        signupBtn.disabled = false;
+        signupBtn.classList.remove('signing-up');
+        signupBtn.textContent = 'SIGN UP';
+    }
 }
 
 function closeModal() {

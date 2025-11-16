@@ -1,0 +1,17 @@
+{
+  "name": "the-farm-carpinteria",
+  "version": "1.0.0",
+  "description": "The Farm Carpinteria coming soon page",
+  "type": "module",
+  "scripts": {
+    "build": "echo 'No build step required'"
+  },
+  "dependencies": {
+    "googleapis": "^126.0.1",
+    "dotenv": "^16.3.1"
+  },
+  "engines": {
+    "node": ">=18.x"
+  }
+}
+
