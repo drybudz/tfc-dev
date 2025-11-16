@@ -23,6 +23,21 @@ export default async function handler(req, res) {
     .split(',')[0]
     .trim();
 
+  // Helper to respond to rate limit in a "soft" way for local dev if desired
+  const respondRateLimited = (res, msg) => {
+    const soft = process.env.SOFT_RATE_LIMIT === 'true' && process.env.NODE_ENV !== 'production';
+    if (soft) {
+      // Return 200 with a flag so the UI can show the message without a 429 network error line
+      return res.status(200).json({
+        success: false,
+        rateLimited: true,
+        error: 'too_many_requests',
+        message: msg,
+      });
+    }
+    return res.status(429).json({ error: 'too_many_requests', message: msg });
+  };
+
   // Validate input
   if (!email || !recaptchaToken) {
     return res.status(400).json({ error: 'Email and reCAPTCHA token are required' });
@@ -129,15 +144,11 @@ export default async function handler(req, res) {
     // Per-IP limits
     const perMinIP = countRecent(r => (r[2] || '').trim() === ip, ONE_MIN);
     if (perMinIP >= MAX_PER_MIN_IP) {
-      return res
-        .status(429)
-        .json({ error: 'too_many_requests', message: 'Too many attempts. Please try again in a minute.' });
+      return respondRateLimited(res, 'Too many attempts. Please try again in a minute.');
     }
     const perHourIP = countRecent(r => (r[2] || '').trim() === ip, ONE_HOUR);
     if (perHourIP >= MAX_PER_HOUR_IP) {
-      return res
-        .status(429)
-        .json({ error: 'too_many_requests', message: 'Too many attempts. Please try again later.' });
+      return respondRateLimited(res, 'Too many attempts. Please try again later.');
     }
 
     // Per-email limits (optional but recommended)
@@ -146,18 +157,14 @@ export default async function handler(req, res) {
       ONE_MIN
     );
     if (perMinEmail >= MAX_PER_MIN_EMAIL) {
-      return res
-        .status(429)
-        .json({ error: 'too_many_requests', message: 'Too many attempts. Please try again in a minute.' });
+      return respondRateLimited(res, 'Too many attempts. Please try again in a minute.');
     }
     const perHourEmail = countRecent(
       r => (r[0] || '').trim().toLowerCase() === emailLc,
       ONE_HOUR
     );
     if (perHourEmail >= MAX_PER_HOUR_EMAIL) {
-      return res
-        .status(429)
-        .json({ error: 'too_many_requests', message: 'Too many attempts. Please try again later.' });
+      return respondRateLimited(res, 'Too many attempts. Please try again later.');
     }
 
     // Duplicate check (case-insensitive)

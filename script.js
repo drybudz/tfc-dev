@@ -87,7 +87,7 @@ async function handleSignup() {
             })
         });
 
-        const data = await response.json();
+        const data = await response.json().catch(() => ({}));
 
         // 3. Handle response
         if (response.ok && data.success) {
@@ -95,18 +95,26 @@ async function handleSignup() {
             modalOverlay.classList.add('show');
         } else {
             // Handle different error types
-            if (data.error === 'duplicate') {
+            if (response.status === 429) {
+                // Do not log errors to console for rate limit; UI already shows message
+                // Optionally, use a soft warning:
+                // console.warn('Rate limit hit');
+            } else if (data.error === 'duplicate') {
                 showError('This email is already registered');
             } else if (data.message) {
                 showError(data.message);
             } else if (data.error) {
+                // Non-rate-limit API error
                 showError(data.error);
+                console.warn('Submit failed', data);
             } else {
                 showError('Something went wrong. Please try again.');
+                console.warn('Submit failed with status', response.status);
             }
         }
     } catch (error) {
-        console.error('Error submitting email:', error);
+        // Network or unexpected error; log softly to avoid alarming red console errors
+        console.warn('Network/Unexpected error during submit:', error?.message || error);
         showError('Something went wrong. Please try again.');
     } finally {
         // Re-enable button
