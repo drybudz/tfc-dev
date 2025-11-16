@@ -16,6 +16,12 @@ export default async function handler(req, res) {
   }
 
   const { email, recaptchaToken } = req.body;
+  // Capture client IP (supports proxies)
+  const ip = (
+    (req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '') + ''
+  )
+    .split(',')[0]
+    .trim();
 
   // Validate input
   if (!email || !recaptchaToken) {
@@ -92,28 +98,85 @@ export default async function handler(req, res) {
 
     const sheets = google.sheets({ version: 'v4', auth });
 
-    // 3. Read existing emails to check for duplicates
+    // 3. Read existing rows (Email=A, Timestamp=B, IP=C)
     const readResponse = await sheets.spreadsheets.values.get({
       spreadsheetId: spreadsheetId,
-      range: 'Sheet1!A:A', // Assuming emails are in column A
+      range: 'Sheet1!A:C',
     });
 
-    const existingEmails = readResponse.data.values || [];
-    const emailList = existingEmails.flat().map(e => e.toLowerCase().trim());
+    const rows = readResponse.data.values || [];
+    const dataRows = rows.slice(1); // skip header
+    const emailLc = email.toLowerCase().trim();
+    const now = Date.now();
+    const ONE_MIN = 60 * 1000;
+    const ONE_HOUR = 60 * ONE_MIN;
+
+    // Limits
+    // Testing thresholds (lowered for easier testing)
+    const MAX_PER_MIN_IP = 3;
+    const MAX_PER_HOUR_IP = 10;
+    const MAX_PER_MIN_EMAIL = 1;
+    const MAX_PER_HOUR_EMAIL = 10;
+
+    const countRecent = (predicate, windowMs) =>
+      dataRows.reduce((count, r) => {
+        const tsMs = Date.parse(r[1] || '');
+        return !Number.isNaN(tsMs) && now - tsMs <= windowMs && predicate(r)
+          ? count + 1
+          : count;
+      }, 0);
+
+    // Per-IP limits
+    const perMinIP = countRecent(r => (r[2] || '').trim() === ip, ONE_MIN);
+    if (perMinIP >= MAX_PER_MIN_IP) {
+      return res
+        .status(429)
+        .json({ error: 'too_many_requests', message: 'Too many attempts. Please try again in a minute.' });
+    }
+    const perHourIP = countRecent(r => (r[2] || '').trim() === ip, ONE_HOUR);
+    if (perHourIP >= MAX_PER_HOUR_IP) {
+      return res
+        .status(429)
+        .json({ error: 'too_many_requests', message: 'Too many attempts. Please try again later.' });
+    }
+
+    // Per-email limits (optional but recommended)
+    const perMinEmail = countRecent(
+      r => (r[0] || '').trim().toLowerCase() === emailLc,
+      ONE_MIN
+    );
+    if (perMinEmail >= MAX_PER_MIN_EMAIL) {
+      return res
+        .status(429)
+        .json({ error: 'too_many_requests', message: 'Too many attempts. Please try again in a minute.' });
+    }
+    const perHourEmail = countRecent(
+      r => (r[0] || '').trim().toLowerCase() === emailLc,
+      ONE_HOUR
+    );
+    if (perHourEmail >= MAX_PER_HOUR_EMAIL) {
+      return res
+        .status(429)
+        .json({ error: 'too_many_requests', message: 'Too many attempts. Please try again later.' });
+    }
+
+    // Duplicate check (case-insensitive)
+    const existingEmails = dataRows.map(r => (r[0] || '').toLowerCase().trim());
+    const emailList = existingEmails;
 
     // Check for duplicate (case-insensitive)
     if (emailList.includes(email.toLowerCase().trim())) {
       return res.status(400).json({ error: 'duplicate', message: 'This email is already registered' });
     }
 
-    // 4. Append new email with timestamp
+    // 4. Append new email with timestamp and IP
     const timestamp = new Date().toISOString();
     await sheets.spreadsheets.values.append({
       spreadsheetId: spreadsheetId,
-      range: 'Sheet1!A:B', // Column A: email, Column B: timestamp
+      range: 'Sheet1!A:C', // A: email, B: timestamp, C: ip
       valueInputOption: 'USER_ENTERED',
       resource: {
-        values: [[email, timestamp]],
+        values: [[email, timestamp, ip]],
       },
     });
 
