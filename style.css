@@ -167,13 +167,13 @@ body {
     cursor: not-allowed;
     transform: none;
     background-color: transparent;
-    color: #F5F1E8;
+    color: #E5D5BC;
 }
 
 .signup-btn:disabled:hover {
     transform: none;
     background-color: transparent;
-    color: #F5F1E8;
+    color: #E5D5BC;
 }
 
 /* Animated Dots */
@@ -236,21 +236,21 @@ body {
 
 .modal-content h2 {
     font-family: 'Baskerville', serif;
-    color: #F5F1E8;
+    color: #E5D5BC;
     font-size: 32px;
     margin-bottom: 20px;
 }
 
 .modal-content p {
     font-family: Arial, sans-serif;
-    color: #F5F1E8;
+    color: #E5D5BC;
     font-size: 16px;
     margin-bottom: 30px;
 }
 
 .modal-btn {
     font-family: 'Baskerville', serif;
-    background-color: #F5F1E8;
+    background-color: #E5D5BC;
     color: #435FAB;
     border: none;
     outline: none;
